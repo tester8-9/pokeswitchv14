@@ -1,0 +1,59 @@
+name: Build SWSH AI Bridge Mods
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container:
+      image: devkitpro/devkita64:latest
+    strategy:
+      fail-fast: false
+      matrix:
+        version: [SWORD]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fix script permissions
+        run: |
+          chmod +x ./exlaunch.sh || true
+          chmod +x ./tools/bootstrap_dependencies.sh || true
+
+      - name: Install host build tools
+        run: |
+          apt-get update
+          apt-get install -y build-essential cmake git python3 python3-pip zip
+
+      - name: Fetch dependencies missing from GitHub source zip
+        run: |
+          bash ./tools/bootstrap_dependencies.sh
+
+      - name: Build flatc
+        run: |
+          cd ./include/flatbuffers/
+          cmake -G "Unix Makefiles"
+          make -j2
+          make install
+
+      - name: Build gf-pawncc
+        run: |
+          cd ./include/gf-pawncc/
+          mkdir -p build
+          cd build
+          cmake ..
+          make -j2
+          cp ./compiler/gf-pawncc /usr/local/bin/gf-pawncc
+
+      - name: Build Sword module
+        run: |
+          version=${{ matrix.version }} bash ./exlaunch.sh build
+          version=${{ matrix.version }} bash ./exlaunch.sh deploy-artifact
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.version }}_ai_bridge_v4_artifact
+          path: ./artifact/

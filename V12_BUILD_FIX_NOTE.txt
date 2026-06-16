@@ -1,0 +1,6 @@
+V12 build fix
+
+This fixes a C++ namespace placement error in source/program/patches/ai_bridge.hpp.
+The original v12 failed GitHub Actions because ApplyActionProbeIfEnabled was accidentally outside namespace AIBridge while later called as AIBridge::ApplyActionProbeIfEnabled.
+
+Upload this fixed project in place of the failed v12 project, commit, and rerun GitHub Actions.
