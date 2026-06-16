@@ -1,0 +1,10 @@
+.vscode/*
+build/*
+out/*
+deploy/*
+artifact/*
+
+*.elf
+*.nso
+*.npdm
+*_generated.h
